@@ -23,6 +23,7 @@ import (
 	go_dockerclient "github.com/fsouza/go-dockerclient"
 	gomock "github.com/golang/mock/gomock"
 	context "golang.org/x/net/context"
+	io "io"
 )
 
 // Mock of TaskEngine interface
@@ -206,6 +207,16 @@ func (_m *MockDockerClient) GetContainerName(_param0 string) (string, error) {
 
 func (_mr *_MockDockerClientRecorder) GetContainerName(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetContainerName", arg0)
+}
+
+func (_m *MockDockerClient) ImportImage(_param0 string, _param1 string, _param2 io.Reader) engine.DockerContainerMetadata {
+	ret := _m.ctrl.Call(_m, "ImportImage", _param0, _param1, _param2)
+	ret0, _ := ret[0].(engine.DockerContainerMetadata)
+	return ret0
+}
+
+func (_mr *_MockDockerClientRecorder) ImportImage(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ImportImage", arg0, arg1, arg2)
 }
 
 func (_m *MockDockerClient) InspectContainer(_param0 string) (*go_dockerclient.Container, error) {
