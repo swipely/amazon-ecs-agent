@@ -123,10 +123,12 @@ func (dg *DockerGoClient) ImportImage(name string, tag string, reader io.Reader)
 	response := make(chan DockerContainerMetadata, 1)
 
 	// Don't import the same image twice.
-	_, err := dg.dockerClient.InspectImage(name + ":" + tag)
+	_, inspectErr := dg.dockerClient.InspectImage(name + ":" + tag)
 
-	if err == nil {
+	if inspectErr == nil {
 		return DockerContainerMetadata{}
+	} else if inspectErr != docker.ErrNoSuchImage {
+		return DockerContainerMetadata{Error: inspectErr}
 	}
 
 	go func() {

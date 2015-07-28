@@ -132,7 +132,7 @@ func TestImportImage(t *testing.T) {
 
 	defer done()
 
-	mockDocker.EXPECT().InspectImage(repo+":"+tag).Return(nil, errors.New("No such image"))
+	mockDocker.EXPECT().InspectImage(repo+":"+tag).Return(nil, docker.ErrNoSuchImage)
 	mockDocker.EXPECT().ImportImage(docker.ImportImageOptions{
 		Repository:  repo,
 		Tag:         tag,
