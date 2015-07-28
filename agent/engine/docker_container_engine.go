@@ -119,6 +119,7 @@ func NewDockerGoClient() (*DockerGoClient, error) {
 }
 
 func (dg *DockerGoClient) ImportImage(name string, tag string, reader io.Reader) DockerContainerMetadata {
+	log.Debug("Importing image", "repository", name, "tag", tag)
 	timeout := ttime.After(pullImageTimeout)
 	response := make(chan DockerContainerMetadata, 1)
 

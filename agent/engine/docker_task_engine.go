@@ -435,7 +435,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		log.Info("Pulling container", "task", task, "container", container)
 		return engine.client.PullImage(container.Image)
 	} else {
-		log.Debug("Importing container from s3", "task", task, "container", container)
+		log.Info("Importing container from s3", "task", task, "container", container)
 		bucket, key := matches[1], matches[2]
 		reader, err := engine.s3Client.StreamObject(bucket, key)
 
