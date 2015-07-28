@@ -14,6 +14,8 @@
 package api
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -190,6 +192,13 @@ func (task *Task) DockerConfig(container *Container) (*docker.Config, *DockerCli
 }
 
 func (task *Task) dockerConfig(container *Container) (*docker.Config, *DockerClientConfigError) {
+	image := container.Image
+	if strings.HasPrefix(container.Image, "s3://") {
+		hash := md5.New()
+		tag := hex.EncodeToString(hash.Sum([]byte(container.Image)))
+		image = task.Arn + ":" + tag
+	}
+
 	dockerVolumes, err := task.dockerConfigVolumes(container)
 	if err != nil {
 		return nil, &DockerClientConfigError{err.Error()}
@@ -212,7 +221,7 @@ func (task *Task) dockerConfig(container *Container) (*docker.Config, *DockerCli
 	}
 
 	config := &docker.Config{
-		Image:        container.Image,
+		Image:        image,
 		Cmd:          container.Command,
 		Entrypoint:   entryPoint,
 		ExposedPorts: task.dockerExposedPorts(container),
