@@ -14,6 +14,7 @@
 package engine
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"reflect"
@@ -120,6 +121,29 @@ func TestPullImage(t *testing.T) {
 	metadata := client.PullImage("image")
 	if metadata.Error != nil {
 		t.Error("Expected pull to succeed")
+	}
+}
+
+func TestImportImage(t *testing.T) {
+	mockDocker, client, _, done := dockerclientSetup(t)
+	repo := "test-import-image"
+	tag := "latest"
+	buffer := bytes.NewBuffer([]byte("mock image tar"))
+
+	defer done()
+
+	mockDocker.EXPECT().InspectImage(repo+":"+tag).Return(nil, errors.New("No such image"))
+	mockDocker.EXPECT().ImportImage(docker.ImportImageOptions{
+		Repository:  repo,
+		Tag:         tag,
+		Source:      "-",
+		InputStream: buffer,
+	}).Return(nil)
+
+	metadata := client.ImportImage(repo, tag, buffer)
+
+	if metadata.Error != nil {
+		t.Error("Expected import to succeed")
 	}
 }
 

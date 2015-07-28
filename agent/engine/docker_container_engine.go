@@ -60,6 +60,7 @@ const (
 type DockerClient interface {
 	ContainerEvents(ctx context.Context) (<-chan DockerContainerChangeEvent, error)
 
+	ImportImage(repo string, tag string, reader io.Reader) DockerContainerMetadata
 	PullImage(image string) DockerContainerMetadata
 	CreateContainer(*docker.Config, *docker.HostConfig, string) DockerContainerMetadata
 	StartContainer(string) DockerContainerMetadata
@@ -115,6 +116,36 @@ func NewDockerGoClient() (*DockerGoClient, error) {
 	return &DockerGoClient{
 		dockerClient: client,
 	}, nil
+}
+
+func (dg *DockerGoClient) ImportImage(name string, tag string, reader io.Reader) DockerContainerMetadata {
+	timeout := ttime.After(pullImageTimeout)
+	response := make(chan DockerContainerMetadata, 1)
+
+	// Don't import the same image twice.
+	_, err := dg.dockerClient.InspectImage(name + ":" + tag)
+
+	if err == nil {
+		return DockerContainerMetadata{}
+	}
+
+	go func() {
+		err := dg.dockerClient.ImportImage(docker.ImportImageOptions{
+			Repository:  name,
+			Tag:         tag,
+			Source:      "-",
+			InputStream: reader,
+		})
+
+		response <- DockerContainerMetadata{Error: err}
+	}()
+
+	select {
+	case resp := <-response:
+		return resp
+	case <-timeout:
+		return DockerContainerMetadata{Error: &DockerTimeoutError{pullImageTimeout, "pulled"}}
+	}
 }
 
 func (dg *DockerGoClient) PullImage(image string) DockerContainerMetadata {
