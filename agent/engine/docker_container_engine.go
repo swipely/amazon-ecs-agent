@@ -535,6 +535,8 @@ func (dg *DockerGoClient) ContainerEvents(ctx context.Context) (<-chan DockerCon
 			// Image events
 			case "pull":
 				fallthrough
+			case "import":
+				fallthrough
 			case "untag":
 				fallthrough
 			case "delete":
