@@ -41,7 +41,17 @@
 			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/query",
+			"Comment": "v0.6.4-22-g469e9fb",
+			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/rest",
+			"Comment": "v0.6.4-22-g469e9fb",
+			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/internal/protocol/restxml",
 			"Comment": "v0.6.4-22-g469e9fb",
 			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
 		},
@@ -57,6 +67,11 @@
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/internal/util",
+			"Comment": "v0.6.4-22-g469e9fb",
+			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
 			"Comment": "v0.6.4-22-g469e9fb",
 			"Rev": "469e9fb72a9c4fd6b645f7994b278e2290fa0231"
 		},
@@ -107,11 +122,6 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/system",
-			"Comment": "v1.6.2",
-			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/units",
 			"Comment": "v1.6.2",
 			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
 		},
