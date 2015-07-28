@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"sync"
 	"time"
 
@@ -443,15 +444,19 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			return DockerContainerMetadata{Error: err}
 		}
 
+		runtime.GOMAXPROCS(256)
 		hash := md5.New()
 		tag := hex.EncodeToString(hash.Sum([]byte(container.Image)))
 
 		metadata := engine.client.ImportImage(task.Arn, tag, reader)
+		runtime.GOMAXPROCS(1)
 
 		if metadata.Error != nil {
 			msg := fmt.Sprintf("Unable to import s3://%s/%s: %s", bucket, key, metadata.Error.Error())
 			metadata.Error = errors.New(msg)
 		}
+
+		log.Info("Done importing image from s3", "task", task, "container", container)
 
 		return metadata
 	}
