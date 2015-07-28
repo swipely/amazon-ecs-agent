@@ -19,6 +19,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"regexp"
 	"sync"
 	"time"
@@ -445,7 +446,14 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		hash := md5.New()
 		tag := hex.EncodeToString(hash.Sum([]byte(container.Image)))
 
-		return engine.client.ImportImage(task.Arn, tag, reader)
+		metadata := engine.client.ImportImage(task.Arn, tag, reader)
+
+		if metadata.Error != nil {
+			msg := fmt.Sprintf("Unable to import s3://%s/%s: %s", bucket, key, metadata.Error.Error())
+			metadata.Error = errors.New(msg)
+		}
+
+		return metadata
 	}
 }
 
