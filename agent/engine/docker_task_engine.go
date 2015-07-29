@@ -27,7 +27,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
-	gzip "github.com/klauspost/pgzip"
+
+	gzip "github.com/youtube/vitess/go/cgzip"
 	"golang.org/x/net/context"
 	"strings"
 
