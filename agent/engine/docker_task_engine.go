@@ -21,12 +21,15 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
+	gzip "github.com/klauspost/pgzip"
 	"golang.org/x/net/context"
+	"strings"
 
 	"github.com/aws/amazon-ecs-agent/agent/api"
 	"github.com/aws/amazon-ecs-agent/agent/config"
@@ -439,8 +442,17 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		bucket, key := matches[1], matches[2]
 		reader, err := engine.s3Client.StreamObject(bucket, key)
 
+		runtime.GOMAXPROCS(256)
+		defer runtime.GOMAXPROCS(1)
 		if err != nil {
 			return DockerContainerMetadata{Error: err}
+		}
+
+		if strings.HasSuffix(key, ".gz") {
+			reader, err = gzip.NewReader(reader)
+			if err != nil {
+				return DockerContainerMetadata{Error: err}
+			}
 		}
 
 		hash := md5.New()

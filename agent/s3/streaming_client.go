@@ -18,9 +18,7 @@ import (
 	"fmt"
 	"github.com/aws/amazon-ecs-agent/agent/utils"
 	"github.com/aws/aws-sdk-go/service/s3"
-	gzip "github.com/klauspost/pgzip"
 	"io"
-	"strings"
 	"time"
 )
 
@@ -113,10 +111,6 @@ func (client *ApiStreamingClient) streamObject(bucket string, key string, chunkS
 
 	reader := NewChunkedReader(contentLength, chunkSize, workers, lookAhead, getChunk)
 	err = reader.Init()
-
-	if err == nil && strings.HasSuffix(key, ".gz") {
-		return gzip.NewReader(reader)
-	}
 
 	return reader, err
 }
