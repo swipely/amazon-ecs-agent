@@ -46,7 +46,7 @@ const (
 	PREFERRED_WORKERS = 4
 
 	// Maximum allowable number of stored chunks.
-	PREFERRED_LOOK_AHEAD = 1024 * 1024
+	PREFERRED_LOOK_AHEAD = 8
 
 	// Maximum size of a chunk
 	MAX_CHUNK_SIZE = 5 * 1024 * 1024 * 1024
