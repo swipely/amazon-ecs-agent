@@ -439,11 +439,18 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		return engine.client.PullImage(container.Image)
 	} else {
 		log.Info("Importing container from s3", "task", task, "container", container)
-		bucket, key := matches[1], matches[2]
-		reader, err := engine.s3Client.StreamObject(bucket, key)
 
 		runtime.GOMAXPROCS(256)
 		defer runtime.GOMAXPROCS(1)
+
+		bucket, key := matches[1], matches[2]
+		originalReader, err := engine.s3Client.StreamObject(bucket, key)
+		reader := originalReader
+
+		if originalReader != nil {
+			defer originalReader.Close()
+		}
+
 		if err != nil {
 			return DockerContainerMetadata{Error: err}
 		}
@@ -451,7 +458,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		if strings.HasSuffix(key, ".gz") {
 			reader, err = gzip.NewReader(reader)
 			if err != nil {
-				return DockerContainerMetadata{Error: err}
+				reader = originalReader
 			}
 		}
 
@@ -464,6 +471,8 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			msg := fmt.Sprintf("Unable to import s3://%s/%s: %s", bucket, key, metadata.Error.Error())
 			metadata.Error = errors.New(msg)
 		}
+
+		log.Info("Completed S3 import", "task", task, "container", container)
 
 		return metadata
 	}
