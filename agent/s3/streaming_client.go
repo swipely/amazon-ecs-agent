@@ -14,11 +14,11 @@
 package s3
 
 import (
-	"compress/gzip"
 	"errors"
 	"fmt"
 	"github.com/aws/amazon-ecs-agent/agent/utils"
 	"github.com/aws/aws-sdk-go/service/s3"
+	gzip "github.com/klauspost/pgzip"
 	"io"
 	"strings"
 	"time"
