@@ -25,9 +25,9 @@ import (
 	"sync"
 	"time"
 
-	"bytes"
 	"github.com/aws/aws-sdk-go/aws"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
+	"io"
 	"os/exec"
 
 	"golang.org/x/net/context"
@@ -463,9 +463,9 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 
 		if strings.HasSuffix(key, ".gz") {
 			cmd := exec.Command("/gzip", "-d")
-			buffer := bytes.NewBuffer(make([]byte, 0))
+			stdoutProxy, stdout := io.Pipe()
 			cmd.Stdin = reader
-			cmd.Stdout = buffer
+			cmd.Stdout = stdout
 
 			err = cmd.Start()
 
@@ -473,7 +473,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 				return DockerContainerMetadata{Error: err}
 			}
 
-			metadata = engine.client.ImportImage(task.Arn, tag, buffer)
+			metadata = engine.client.ImportImage(task.Arn, tag, stdoutProxy)
 
 			err = cmd.Wait()
 
