@@ -460,6 +460,9 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			reader, err = gzip.NewReader(reader)
 			if err != nil {
 				reader = originalReader
+				log.Info("Error creating gzip reader", "err", err)
+			} else {
+				log.Info("gunzipping the import before sending it to Docker")
 			}
 		}
 
