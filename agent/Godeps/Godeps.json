@@ -157,12 +157,24 @@
 			"Rev": "87f6f6a22ebfbc3f89b9ccdc7fddd1b914c095f9"
 		},
 		{
-			"ImportPath": "github.com/vaughan0/go-ini",
-			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
+			"ImportPath": "github.com/klauspost/compress/flate",
+			"Rev": "bbbc5c0186805ae4b169eec4d3dca2cbb0441356"
 		},
 		{
-			"ImportPath": "github.com/youtube/vitess/go/cgzip",
-			"Rev": "632072f93c43ee8b178cf8a00aa13c6de8177c65"
+			"ImportPath": "github.com/klauspost/cpuid",
+			"Rev": "3b0816bb6cb682eea8e1973f4168b6c86880efe1"
+		},
+		{
+			"ImportPath": "github.com/klauspost/crc32",
+			"Rev": "55bf046ad09604e8e121b8494e3f16b081b1a6d5"
+		},
+		{
+			"ImportPath": "github.com/klauspost/pgzip",
+			"Rev": "17ccc9d0227f9029bdba2a5b75e52aedf37aff38"
+		},
+		{
+			"ImportPath": "github.com/vaughan0/go-ini",
+			"Rev": "a98ad7ee00ec53921f08832bc06ecf7fd600e6a1"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
