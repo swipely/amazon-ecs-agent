@@ -464,6 +464,8 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			} else {
 				log.Info("gunzipping the import before sending it to Docker")
 			}
+		} else {
+			log.Info("Not attempting to gzip", "key", key)
 		}
 
 		hash := md5.New()
