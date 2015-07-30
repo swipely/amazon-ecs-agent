@@ -48,7 +48,8 @@ docker-release:
 # Release packages our agent into a "scratch" based dockerfile
 release: certs docker-release
 	@cd scripts && ./create-amazon-ecs-scratch
-	@cp "$(shell which gzip)" ./out/gzip
+	@[[ -x ./vendor/gzip ]] || echo "No executable gzip found in ./vendor/" && exit 1
+	@cp ./vendor/gzip ./out/gzip
 	@docker build -f scripts/dockerfiles/Dockerfile.release -t "amazon/amazon-ecs-agent:latest" .
 	@echo "Built Docker image \"amazon/amazon-ecs-agent:latest\""
 

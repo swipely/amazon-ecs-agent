@@ -3,5 +3,6 @@ misc/netkitten/netkitten
 out/
 coverage/
 _bin/
+vendor/
 *.swp
 *.orig
