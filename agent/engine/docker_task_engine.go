@@ -27,8 +27,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
+	"io"
+	"os/exec"
 
-	gzip "github.com/youtube/vitess/go/cgzip"
 	"golang.org/x/net/context"
 	"strings"
 
@@ -456,22 +457,34 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			return DockerContainerMetadata{Error: err}
 		}
 
-		if strings.HasSuffix(key, ".gz") {
-			reader, err = gzip.NewReader(reader)
-			if err != nil {
-				reader = originalReader
-				log.Info("Error creating gzip reader", "err", err)
-			} else {
-				log.Info("gunzipping the import before sending it to Docker")
-			}
-		} else {
-			log.Info("Not attempting to gzip", "key", key)
-		}
-
 		hash := md5.New()
 		tag := hex.EncodeToString(hash.Sum([]byte(container.Image)))
+		metadata := DockerContainerMetadata{}
 
-		metadata := engine.client.ImportImage(task.Arn, tag, reader)
+		if strings.HasSuffix(key, ".gz") {
+			cmd := exec.Command("/gzip", "-d")
+			stdin, err := cmd.StdinPipe()
+
+			if err != nil {
+				return DockerContainerMetadata{Error: err}
+			}
+
+			stdout, err := cmd.StdoutPipe()
+
+			if err != nil {
+				return DockerContainerMetadata{Error: err}
+			}
+
+			go func() {
+				io.Copy(stdin, originalReader)
+				stdin.Close()
+				originalReader.Close()
+			}()
+
+			metadata = engine.client.ImportImage(task.Arn, tag, stdout)
+		} else {
+			metadata = engine.client.ImportImage(task.Arn, tag, reader)
+		}
 
 		if metadata.Error != nil {
 			msg := fmt.Sprintf("Unable to import s3://%s/%s: %s", bucket, key, metadata.Error.Error())
