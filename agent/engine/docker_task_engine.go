@@ -482,6 +482,11 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			}()
 
 			metadata = engine.client.ImportImage(task.Arn, tag, stdout)
+
+			err = cmd.Wait()
+			if err != nil {
+				return DockerContainerMetadata{Error: err}
+			}
 		} else {
 			metadata = engine.client.ImportImage(task.Arn, tag, reader)
 		}
