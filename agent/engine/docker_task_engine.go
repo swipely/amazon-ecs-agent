@@ -463,7 +463,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 
 		if strings.HasSuffix(key, ".gz") {
 			cmd := exec.Command("/gzip", "-d")
-			buffer := bytes.NewBuffer(make([]byte, 32*1024))
+			buffer := bytes.NewBuffer(make([]byte, 0))
 			cmd.Stdin = reader
 			cmd.Stdout = buffer
 
