@@ -478,7 +478,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			metadata.Error = errors.New(msg)
 		}
 
-		log.Info("Completed S3 import", "task", task, "container", container)
+		log.Info("Completed s3 import", "task", task, "container", container)
 
 		return metadata
 	}
