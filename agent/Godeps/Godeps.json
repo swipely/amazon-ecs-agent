@@ -126,6 +126,11 @@
 			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/pkg/units",
+			"Comment": "v1.6.2",
+			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
+		},
+		{
 			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
 			"Comment": "v1.6.2",
 			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
