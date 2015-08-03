@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"runtime"
 	"sync"
 	"time"
 
