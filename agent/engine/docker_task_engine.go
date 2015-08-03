@@ -442,9 +442,6 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 	} else {
 		log.Info("Importing container from s3", "task", task, "container", container)
 
-		runtime.GOMAXPROCS(256)
-		defer runtime.GOMAXPROCS(1)
-
 		bucket, key := matches[1], matches[2]
 		reader, err := engine.s3Client.StreamObject(bucket, key)
 
