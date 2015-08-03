@@ -475,8 +475,14 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			metaChan := make(chan DockerContainerMetadata, 1)
 			errChan := make(chan error, 1)
 
-			go func() { metaChan <- engine.client.ImportImage(task.Arn, tag, stdoutProxy) }()
-			go func() { errChan <- cmd.Wait() }()
+			go func() {
+				metaChan <- engine.client.ImportImage(task.Arn, tag, stdoutProxy)
+				stdoutProxy.Close()
+			}()
+			go func() {
+				errChan <- cmd.Wait()
+				stdout.Close()
+			}()
 
 			exited := false
 			responded := false
