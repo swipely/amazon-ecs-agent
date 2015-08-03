@@ -479,10 +479,12 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			go func() { errChan <- cmd.Wait() }()
 
 			exited := false
+			responded := false
 
-			for !exited {
+			for !exited && !responded {
 				select {
 				case metadata = <-metaChan:
+					responded = true
 				case err = <-errChan:
 					if err != nil {
 						return DockerContainerMetadata{Error: err}
