@@ -476,15 +476,18 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			errChan := make(chan error, 1)
 
 			go func() { metaChan <- engine.client.ImportImage(task.Arn, tag, stdoutProxy) }()
-
 			go func() { errChan <- cmd.Wait() }()
 
-			select {
-			case metadata = <-metaChan:
-				break
-			case err = <-errChan:
-				if err != nil {
-					return DockerContainerMetadata{Error: err}
+			exited := false
+
+			for !exited {
+				select {
+				case metadata = <-metaChan:
+				case err = <-errChan:
+					if err != nil {
+						return DockerContainerMetadata{Error: err}
+					}
+					exited = true
 				}
 			}
 		} else {
