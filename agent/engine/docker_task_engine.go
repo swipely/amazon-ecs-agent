@@ -481,7 +481,7 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 			exited := false
 			responded := false
 
-			for !exited && !responded {
+			for !(exited && responded) {
 				select {
 				case metadata = <-metaChan:
 					log.Info("Received docker container metadata from import", "metadata", metadata)
