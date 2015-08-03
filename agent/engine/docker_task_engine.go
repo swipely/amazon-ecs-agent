@@ -446,11 +446,10 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 		defer runtime.GOMAXPROCS(1)
 
 		bucket, key := matches[1], matches[2]
-		originalReader, err := engine.s3Client.StreamObject(bucket, key)
-		reader := originalReader
+		reader, err := engine.s3Client.StreamObject(bucket, key)
 
-		if originalReader != nil {
-			defer originalReader.Close()
+		if reader != nil {
+			defer reader.Close()
 		}
 
 		if err != nil {
@@ -473,12 +472,20 @@ func (engine *DockerTaskEngine) pullContainer(task *api.Task, container *api.Con
 				return DockerContainerMetadata{Error: err}
 			}
 
-			metadata = engine.client.ImportImage(task.Arn, tag, stdoutProxy)
+			metaChan := make(chan DockerContainerMetadata, 1)
+			errChan := make(chan error, 1)
 
-			err = cmd.Wait()
+			go func() { metaChan <- engine.client.ImportImage(task.Arn, tag, stdoutProxy) }()
 
-			if err != nil {
-				return DockerContainerMetadata{Error: err}
+			go func() { errChan <- cmd.Wait() }()
+
+			select {
+			case metadata = <-metaChan:
+				break
+			case err = <-errChan:
+				if err != nil {
+					return DockerContainerMetadata{Error: err}
+				}
 			}
 		} else {
 			metadata = engine.client.ImportImage(task.Arn, tag, reader)
