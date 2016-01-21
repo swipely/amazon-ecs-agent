@@ -19,15 +19,27 @@ import (
 	"sync"
 	"time"
 
+	"errors"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	awsS3 "github.com/aws/aws-sdk-go/service/s3"
+	"golang.org/x/net/context"
+
 	"github.com/aws/amazon-ecs-agent/agent/api"
 	"github.com/aws/amazon-ecs-agent/agent/config"
 	"github.com/aws/amazon-ecs-agent/agent/credentials"
+	"github.com/aws/amazon-ecs-agent/agent/ec2"
 	"github.com/aws/amazon-ecs-agent/agent/ecscni"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dependencygraph"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerclient"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerstate"
 	"github.com/aws/amazon-ecs-agent/agent/engine/emptyvolume"
 	"github.com/aws/amazon-ecs-agent/agent/eventstream"
+	"github.com/aws/amazon-ecs-agent/agent/s3"
 	"github.com/aws/amazon-ecs-agent/agent/statechange"
 	"github.com/aws/amazon-ecs-agent/agent/statemanager"
 	"github.com/aws/amazon-ecs-agent/agent/utils"
@@ -44,6 +56,10 @@ const (
 	// DockerDefaultEndpoint is the default value for the Docker endpoint
 	DockerDefaultEndpoint = "unix:///var/run/docker.sock"
 	labelPrefix           = "com.amazonaws.ecs."
+)
+
+var (
+	S3_REGEX = regexp.MustCompile("^s3://([^/]+)/(.*)$")
 )
 
 // DockerTaskEngine is a state machine for managing a task and its containers
@@ -78,6 +94,8 @@ type DockerTaskEngine struct {
 	cniClient  ecscni.CNIClient
 
 	containerChangeEventStream *eventstream.EventStream
+
+	s3Client s3.StreamingClient
 
 	stopEngine context.CancelFunc
 
@@ -157,6 +175,11 @@ func (engine *DockerTaskEngine) MarshalJSON() ([]byte, error) {
 // and operate normally.
 // This function must be called before any other function, except serializing and deserializing, can succeed without error.
 func (engine *DockerTaskEngine) Init(ctx context.Context) error {
+	err = engine.initS3Client()
+	if err != nil {
+		return err
+	}
+
 	// TODO, pass in a a context from main from background so that other things can stop us, not just the tests
 	derivedCtx, cancel := context.WithCancel(ctx)
 	engine.stopEngine = cancel
@@ -175,6 +198,18 @@ func (engine *DockerTaskEngine) Init(ctx context.Context) error {
 	// Now catch up and start processing new events per normal
 	go engine.handleDockerEvents(derivedCtx)
 	engine.initialized = true
+	return nil
+}
+
+func (engine *DockerTaskEngine) initS3Client() error {
+	if engine.s3Client == nil {
+		identity, err := ec2.DefaultClient.InstanceIdentityDocument()
+		if err != nil {
+			return err
+		}
+		rawClient := awsS3.New(&aws.Config{Region: &identity.Region})
+		engine.s3Client = s3.NewStreamingClient(rawClient)
+	}
 	return nil
 }
 
@@ -565,7 +600,25 @@ func (engine *DockerTaskEngine) pullAndUpdateContainerReference(task *api.Task, 
 		return DockerContainerMetadata{Error: TaskStoppedBeforePullBeginError{task.Arn}}
 	}
 
-	metadata := engine.client.PullImage(container.Image, container.RegistryAuthentication)
+	var metadata DockerContainerMetadata
+	matches := S3_REGEX.FindStringSubmatch(container.Image)
+
+	if len(matches) != 3 {
+		log.Info("Pulling container", "task", task, "container", container)
+		metadata = engine.client.PullImage(container.Image, container.RegistryAuthentication)
+	} else {
+		log.Info("Loading container from S3", "task", task, "container", container)
+		bucket, key := matches[1], matches[2]
+		slice := strings.Split(key, "/")
+		name := slice[len(slice)-1]
+		reader, err := engine.s3Client.StreamObject(bucket, key)
+		if err != nil {
+			metadata = DockerContainerMetadata{Error: err}
+		} else {
+			log.Debug("Loading container from S3 with name", "name", name)
+			metadata = engine.client.LoadImage(name, reader)
+		}
+	}
 
 	// Don't add internal images(created by ecs-agent) into imagemanger state
 	if container.IsInternal() {
@@ -579,6 +632,7 @@ func (engine *DockerTaskEngine) pullAndUpdateContainerReference(task *api.Task, 
 	imageState := engine.imageManager.GetImageStateFromImageName(container.Image)
 	engine.state.AddImageState(imageState)
 	engine.saver.Save()
+
 	return metadata
 }
 
