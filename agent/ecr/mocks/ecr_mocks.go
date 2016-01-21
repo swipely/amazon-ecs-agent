@@ -17,8 +17,8 @@
 package mock_ecr
 
 import (
-	ecr "github.com/aws/amazon-ecs-agent/agent/ecr"
-	ecr0 "github.com/aws/amazon-ecs-agent/agent/ecr/model/ecr"
+	ecr0 "github.com/aws/amazon-ecs-agent/agent/ecr"
+	ecr "github.com/aws/amazon-ecs-agent/agent/ecr/model/ecr"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -43,9 +43,9 @@ func (_m *MockECRSDK) EXPECT() *_MockECRSDKRecorder {
 	return _m.recorder
 }
 
-func (_m *MockECRSDK) GetAuthorizationToken(_param0 *ecr0.GetAuthorizationTokenInput) (*ecr0.GetAuthorizationTokenOutput, error) {
+func (_m *MockECRSDK) GetAuthorizationToken(_param0 *ecr.GetAuthorizationTokenInput) (*ecr.GetAuthorizationTokenOutput, error) {
 	ret := _m.ctrl.Call(_m, "GetAuthorizationToken", _param0)
-	ret0, _ := ret[0].(*ecr0.GetAuthorizationTokenOutput)
+	ret0, _ := ret[0].(*ecr.GetAuthorizationTokenOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
