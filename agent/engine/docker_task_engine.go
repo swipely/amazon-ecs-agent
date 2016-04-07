@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	// "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
 	"golang.org/x/net/context"
@@ -202,7 +202,7 @@ func (engine *DockerTaskEngine) Init(ctx context.Context) error {
 
 func (engine *DockerTaskEngine) initS3Client() error {
 	if engine.s3Client == nil {
-		rawClient := awsS3.New(session.New())
+		rawClient := awsS3.New(session.New(), &aws.Config{Region: &engine.cfg.AWSRegion})
 		engine.s3Client = s3.NewStreamingClient(rawClient)
 	}
 }
