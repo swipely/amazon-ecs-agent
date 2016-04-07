@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
+	// "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
 	"golang.org/x/net/context"
@@ -32,7 +32,7 @@ import (
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerclient"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerstate"
 	"github.com/aws/amazon-ecs-agent/agent/credentials"
-	"github.com/aws/amazon-ecs-agent/agent/ec2"
+	// "github.com/aws/amazon-ecs-agent/agent/ec2"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerclient"
 	"github.com/aws/amazon-ecs-agent/agent/engine/dockerstate"
 	"github.com/aws/amazon-ecs-agent/agent/eventstream"
@@ -158,10 +158,7 @@ func (engine *DockerTaskEngine) Init() error {
 		return err
 	}
 
-	err = engine.initS3Client()
-	if err != nil {
-		return err
-	}
+	engine.initS3Client()
 
 	// TODO, pass in a a context from main from background so that other things can stop us, not just the tests
 	ctx, cancel := context.WithCancel(context.TODO())
@@ -203,16 +200,11 @@ func (engine *DockerTaskEngine) initDockerClient() error {
 	return nil
 }
 
-func (engine *DockerTaskEngine) initS3Client() error {
+func (engine *DockerTaskEngine) initS3Client() {
 	if engine.s3Client == nil {
-		identity, err := ec2.DefaultClient.InstanceIdentityDocument()
-		if err != nil {
-			return err
-		}
-		rawClient := awsS3.New(session.New(), &aws.Config{Region: &identity.Region})
+		rawClient := awsS3.New(session.New())
 		engine.s3Client = s3.NewStreamingClient(rawClient)
 	}
-	return nil
 }
 
 // SetDockerClient provides a way to override the client used for communication with docker as a testing hook.
