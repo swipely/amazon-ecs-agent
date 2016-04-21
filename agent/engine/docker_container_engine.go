@@ -46,6 +46,8 @@ const (
 
 // Timelimits for docker operations enforced above docker
 const (
+	hostPortOverrideLabel = "com.swipely.amazon-ecs-agent.host-port-override"
+
 	pullImageTimeout        = 2 * time.Hour
 	loadImageTimeout        = 2 * time.Hour
 	createContainerTimeout  = 3 * time.Minute
@@ -385,6 +387,23 @@ func (dg *dockerGoClient) createContainer(ctx context.Context, config *docker.Co
 	client, err := dg.dockerClient()
 	if err != nil {
 		return DockerContainerMetadata{Error: CannotGetDockerClientError{version: dg.version, err: err}}
+	}
+
+	if config != nil {
+		override, hasKey := config.Labels[hostPortOverrideLabel]
+		if hasKey {
+			portBindings := make(map[docker.Port][]docker.PortBinding, len(hostConfig.PortBindings))
+			for port, bindings := range hostConfig.PortBindings {
+				portBindings[port] = make([]docker.PortBinding, len(bindings))
+				for idx, binding := range bindings {
+					portBindings[port][idx] = docker.PortBinding{
+						HostIP:   binding.HostIP,
+						HostPort: override,
+					}
+				}
+			}
+			hostConfig.PortBindings = portBindings
+		}
 	}
 
 	containerOptions := docker.CreateContainerOptions{Config: config, HostConfig: hostConfig, Name: name}
