@@ -173,24 +173,14 @@
 			"ImportPath": "github.com/aws/aws-sdk-go/service/ec2",
 			"Comment": "v1.8.19",
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
-    },
-    {
-			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/service/iam",
 			"Comment": "v1.8.19",
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
 		{
-			"ImportPath": "github.com/docker/docker/pkg/mount",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1812-g1dbf3c6",
-			"Rev": "1dbf3c65e15a2d021cc15ded9caaf6192d58970b"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/parsers",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1812-g1dbf3c6",
-			"Rev": "1dbf3c65e15a2d021cc15ded9caaf6192d58970b"
-		},
-		{
-			"ImportPath": "github.com/aws/aws-sdk-go/service/iam",
+			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
 			"Comment": "v1.8.19",
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
