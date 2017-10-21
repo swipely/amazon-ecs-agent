@@ -15,7 +15,6 @@ package s3
 
 import (
 	"errors"
-	"github.com/aws/amazon-ecs-agent/agent/utils/ttime"
 	"io"
 	"time"
 )
@@ -147,7 +146,7 @@ func (self *ChunkedReader) work(id int) {
 		index, open := <-self.workerIn
 		if index != nil {
 			for (int(self.bytesRead/self.chunkSize) + 1 + self.lookAhead) < *index {
-				ttime.Sleep(time.Millisecond * 100)
+				time.Sleep(time.Millisecond * 100)
 			}
 
 			buffer, err := self.getChunk(*index)
