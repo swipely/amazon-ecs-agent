@@ -146,8 +146,8 @@
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/restxml",
-			"Comment": "v1.0.11",
-			"Rev": "f22f230de2ce5d5bd15c415fb72d30a77931ac56"
+			"Comment": "v1.8.19",
+			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
@@ -176,18 +176,18 @@
     },
     {
 			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
-			"Comment": "v1.0.11",
-			"Rev": "f22f230de2ce5d5bd15c415fb72d30a77931ac56"
+			"Comment": "v1.8.19",
+			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/mount",
-			"Comment": "v1.6.2",
-			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1812-g1dbf3c6",
+			"Rev": "1dbf3c65e15a2d021cc15ded9caaf6192d58970b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/parsers",
-			"Comment": "v1.6.2",
-			"Rev": "7c8fca2ddb58c8d2c4fb4df31c242886df7dd257"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1812-g1dbf3c6",
+			"Rev": "1dbf3c65e15a2d021cc15ded9caaf6192d58970b"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/service/iam",
@@ -431,11 +431,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
-			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
+			"Rev": "6c23252515492caf9b228a9d5cabcdbde29f7f82"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
-			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
+			"Rev": "6c23252515492caf9b228a9d5cabcdbde29f7f82"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
