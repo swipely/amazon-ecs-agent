@@ -19,16 +19,12 @@ import (
 	"sync"
 	"time"
 
-	"errors"
 	"regexp"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	awsS3 "github.com/aws/aws-sdk-go/service/s3"
-	"golang.org/x/net/context"
 
 	"github.com/aws/amazon-ecs-agent/agent/api"
 	"github.com/aws/amazon-ecs-agent/agent/config"
@@ -198,7 +194,7 @@ func (engine *DockerTaskEngine) Init(ctx context.Context) error {
 	return nil
 }
 
-func (engine *DockerTaskEngine) initS3Client() error {
+func (engine *DockerTaskEngine) initS3Client() {
 	if engine.s3Client == nil {
 		rawClient := awsS3.New(session.New(), &aws.Config{Region: &engine.cfg.AWSRegion})
 		engine.s3Client = s3.NewStreamingClient(rawClient)
@@ -605,10 +601,15 @@ func (engine *DockerTaskEngine) pullAndUpdateContainerReference(task *api.Task, 
 		name := slice[len(slice)-1]
 		reader, err := engine.s3Client.StreamObject(bucket, key)
 		if err != nil {
-			metadata = DockerContainerMetadata{Error: err}
+			streamError := CannotPullContainerError{err}
+			metadata = DockerContainerMetadata{Error: streamError}
 		} else {
 			log.Debug("Loading container from S3 with name", "name", name)
-			metadata = engine.client.LoadImage(name, reader)
+			err := engine.client.LoadImage(reader, LoadImageTimeout)
+			if err != nil {
+				loadError := CannotPullContainerError{err}
+				metadata = DockerContainerMetadata{Error: loadError}
+			}
 		}
 	}
 

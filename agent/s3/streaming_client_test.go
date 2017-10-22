@@ -4,13 +4,11 @@ import (
 	builtinBytes "bytes"
 	"errors"
 	"fmt"
-	"github.com/aws/amazon-ecs-agent/agent/utils/ttime"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"io/ioutil"
 	"regexp"
 	"strconv"
 	"testing"
-	"time"
 )
 
 const (
@@ -23,10 +21,7 @@ const (
 func TestStreamObjectNoSuchObject(t *testing.T) {
 	rawClient := NewMockRawS3Client()
 	streamingClient := NewStreamingClient(rawClient)
-	testTime := ttime.NewTestTime()
-	ttime.SetTime(testTime)
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
-		testTime.Warp(time.Minute)
 		return nil, errors.New("Unable to find object")
 	}
 	_, err := streamingClient.StreamObject(bucket, key)
@@ -42,10 +37,7 @@ func TestStreamObjectNoSuchObject(t *testing.T) {
 func TestStreamObjectNoContentLength(t *testing.T) {
 	rawClient := NewMockRawS3Client()
 	streamingClient := NewStreamingClient(rawClient)
-	testTime := ttime.NewTestTime()
-	ttime.SetTime(testTime)
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
-		testTime.Warp(time.Minute)
 		var length int64 = 0
 		return &s3.HeadObjectOutput{ContentLength: &length}, nil
 	}
@@ -63,8 +55,6 @@ func TestStreamObjectNoContentLength(t *testing.T) {
 func TestStreamObjectSuccess(t *testing.T) {
 	rawClient := NewMockRawS3Client()
 	streamingClient := NewStreamingClient(rawClient)
-	testTime := ttime.NewTestTime()
-	ttime.SetTime(testTime)
 	var contentLength int64 = (64 * 1024 * 1024) - 1
 
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {

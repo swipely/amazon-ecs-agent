@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/cihub/seelog"
 	"github.com/pborman/uuid"
@@ -35,7 +34,6 @@ import (
 
 const (
 	containerChangeHandler = "DockerStatsEngineDockerEventsHandler"
-	listContainersTimeout  = 10 * time.Minute
 	queueResetThreshold    = 2 * ecsengine.StatsInactivityTimeout
 )
 

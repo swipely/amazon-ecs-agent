@@ -52,10 +52,11 @@ const (
 	startContainerTimeout   = 3 * time.Minute
 	stopContainerTimeout    = 30 * time.Second
 	pullImageTimeout        = 2 * time.Hour
-	loadImageTimeout        = 2 * time.Hour
+	LoadImageTimeout        = 2 * time.Hour
 	removeContainerTimeout  = 5 * time.Minute
 	inspectContainerTimeout = 30 * time.Second
 	removeImageTimeout      = 3 * time.Minute
+	ListContainersTimeout   = 10 * time.Minute
 
 	// dockerPullBeginTimeout is the timeout from when a 'pull' is called to when
 	// we expect to see output on the pull progress stream. This is to work
@@ -96,8 +97,6 @@ type DockerClient interface {
 
 	// PullImage pulls an image. authData should contain authentication data provided by the ECS backend.
 	PullImage(image string, authData *api.RegistryAuthenticationData) DockerContainerMetadata
-
-	LoadImage(name string, reader io.ReadCloser) DockerContainerMetadata
 
 	// ImportLocalEmptyVolumeImage imports a locally-generated empty-volume image for supported platforms.
 	ImportLocalEmptyVolumeImage() DockerContainerMetadata
@@ -225,55 +224,6 @@ func (dg *dockerGoClient) time() ttime.Time {
 		}
 	})
 	return dg._time
-}
-
-func (dg *dockerGoClient) LoadImage(name string, reader io.ReadCloser) DockerContainerMetadata {
-	timeout := ttime.After(loadImageTimeout)
-	pullLock.Lock()
-	defer pullLock.Unlock()
-
-	response := make(chan DockerContainerMetadata, 1)
-
-	go func() { response <- dg.loadImage(name, reader) }()
-
-	select {
-	case resp := <-response:
-		return resp
-	case <-timeout:
-		return DockerContainerMetadata{Error: &DockerTimeoutError{loadImageTimeout, "loaded"}}
-	}
-}
-
-func (dg *dockerGoClient) loadImage(name string, reader io.ReadCloser) DockerContainerMetadata {
-	log.Debug("Loading image", "name", name)
-	defer reader.Close()
-	client, err := dg.dockerClient()
-	if err != nil {
-		return DockerContainerMetadata{Error: CannotGetDockerClientError{version: dg.version, err: err}}
-	}
-
-	_, err = client.InspectImage(name)
-	if err == nil {
-		// Image already exists, return.
-		return DockerContainerMetadata{}
-	} else if err != docker.ErrNoSuchImage {
-		// Error communicating with Docker
-		return DockerContainerMetadata{Error: CannotXContainerError{"Load", err.Error()}}
-	}
-
-	err = client.LoadImage(docker.LoadImageOptions{InputStream: reader})
-	if err != nil {
-		return DockerContainerMetadata{Error: CannotXContainerError{"Load", err.Error()}}
-	}
-
-	_, err = client.InspectImage(name)
-	if err != nil {
-		return DockerContainerMetadata{Error: CannotXContainerError{"Load", err.Error()}}
-	}
-
-	log.Debug("Loading image complete", "name", name)
-
-	return DockerContainerMetadata{}
 }
 
 func (dg *dockerGoClient) PullImage(image string, authData *api.RegistryAuthenticationData) DockerContainerMetadata {
