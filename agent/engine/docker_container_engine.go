@@ -47,16 +47,22 @@ const (
 // Timelimits for docker operations enforced above docker
 const (
 	hostPortOverrideLabel = "com.swipely.amazon-ecs-agent.host-port-override"
+	// ListContainersTimeout is the timeout for the ListContainers API.
+	ListContainersTimeout = 10 * time.Minute
+	// LoadImageTimeout is the timeout for the LoadImage API. It's set
+	// to much lower value than pullImageTimeout as it involves loading
+	// image from either a file or STDIN
+	// calls involved.
+	// TODO: Benchmark and re-evaluate this value
+	LoadImageTimeout = 10 * time.Minute
+	pullImageTimeout = 2 * time.Hour
 
 	createContainerTimeout  = 4 * time.Minute
 	startContainerTimeout   = 3 * time.Minute
 	stopContainerTimeout    = 30 * time.Second
-	pullImageTimeout        = 2 * time.Hour
-	LoadImageTimeout        = 2 * time.Hour
 	removeContainerTimeout  = 5 * time.Minute
 	inspectContainerTimeout = 30 * time.Second
 	removeImageTimeout      = 3 * time.Minute
-	ListContainersTimeout   = 10 * time.Minute
 
 	// dockerPullBeginTimeout is the timeout from when a 'pull' is called to when
 	// we expect to see output on the pull progress stream. This is to work
