@@ -4,7 +4,9 @@ import (
 	builtinBytes "bytes"
 	"errors"
 	"fmt"
+	"github.com/aws/amazon-ecs-agent/agent/utils"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/golang/mock/gomock"
 	"io/ioutil"
 	"regexp"
 	"strconv"
@@ -19,8 +21,13 @@ const (
 // Test the case where S3 explicitly returns an error from the first HeadObject
 // request.
 func TestStreamObjectNoSuchObject(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	backoff := utils.NewSimpleBackoff(0, 1, 0.0, 1)
+
 	rawClient := NewMockRawS3Client()
-	streamingClient := NewStreamingClient(rawClient)
+	streamingClient := newStreamingClient(rawClient, backoff)
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
 		return nil, errors.New("Unable to find object")
 	}
@@ -35,8 +42,13 @@ func TestStreamObjectNoSuchObject(t *testing.T) {
 
 // Test the case where S3 returns no content length.
 func TestStreamObjectNoContentLength(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	backoff := utils.NewSimpleBackoff(0, 1, 0.0, 1)
+
 	rawClient := NewMockRawS3Client()
-	streamingClient := NewStreamingClient(rawClient)
+	streamingClient := newStreamingClient(rawClient, backoff)
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
 		var length int64 = 0
 		return &s3.HeadObjectOutput{ContentLength: &length}, nil
@@ -53,8 +65,13 @@ func TestStreamObjectNoContentLength(t *testing.T) {
 
 // Test a successful stream
 func TestStreamObjectSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	backoff := utils.NewSimpleBackoff(0, 1, 0.0, 1)
+
 	rawClient := NewMockRawS3Client()
-	streamingClient := NewStreamingClient(rawClient)
+	streamingClient := newStreamingClient(rawClient, backoff)
 	var contentLength int64 = (64 * 1024 * 1024) - 1
 
 	rawClient.headObject = func(input *s3.HeadObjectInput) (*s3.HeadObjectOutput, error) {
@@ -122,12 +139,12 @@ func TestStreamObjectSuccess(t *testing.T) {
 
 	bytes, err := ioutil.ReadAll(reader)
 	if int64(len(bytes)) != contentLength {
-		t.Errorf("Expected %i bytes, got %i", contentLength, len(bytes))
+		t.Errorf("Expected %d bytes, got %d", contentLength, len(bytes))
 	}
 
 	for i := 0; i < len(bytes); i++ {
 		if bytes[i] != byte(i%256) {
-			t.Errorf("Bad byte at index %i: %i. Expected %i.", i, bytes[i], i%256)
+			t.Errorf("Bad byte at index %d: %d. Expected %d.", i, bytes[i], i%256)
 		}
 	}
 

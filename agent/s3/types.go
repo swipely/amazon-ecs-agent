@@ -14,6 +14,7 @@
 package s3
 
 import (
+	"github.com/aws/amazon-ecs-agent/agent/utils"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"io"
 )
@@ -42,6 +43,7 @@ type StreamingClient interface {
 type ApiStreamingClient struct {
 	// Internal s3 client.
 	s3Client RawS3Client
+	backoff  utils.Backoff
 }
 
 // Used to communicate between threads in the chunked reader.

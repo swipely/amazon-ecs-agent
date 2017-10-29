@@ -54,7 +54,12 @@ const (
 
 // Create a new StreamingClient
 func NewStreamingClient(s3Client RawS3Client) *ApiStreamingClient {
-	return &ApiStreamingClient{s3Client: s3Client}
+	backoff := utils.NewSimpleBackoff(BACKOFF_INIT, BACKOFF_MAX, 0.0, BACKOFF_MULTIPLIER)
+	return newStreamingClient(s3Client, backoff)
+}
+
+func newStreamingClient(s3Client RawS3Client, backoff utils.Backoff) *ApiStreamingClient {
+	return &ApiStreamingClient{s3Client: s3Client, backoff: backoff}
 }
 
 // Stream the bytes and errors from an S3 object.
@@ -99,7 +104,7 @@ func (client *ApiStreamingClient) streamObject(bucket string, key string, chunkS
 		end := begin + chunkSize - 1
 
 		if (begin < 0) || (begin >= contentLength) {
-			return nil, errors.New(fmt.Sprintf("Index out of bounds: %i", index))
+			return nil, errors.New(fmt.Sprintf("Index out of bounds: %d", index))
 		}
 
 		if end >= contentLength {
@@ -117,7 +122,6 @@ func (client *ApiStreamingClient) streamObject(bucket string, key string, chunkS
 
 // Retreive a chunk of an S3 object.
 func (client *ApiStreamingClient) getObjectChunk(bucket string, key string, begin int64, end int64) (buffer []byte, err error) {
-	backoff := utils.NewSimpleBackoff(BACKOFF_INIT, BACKOFF_MAX, 0.0, BACKOFF_MULTIPLIER)
 	rng := fmt.Sprintf("bytes=%d-%d", begin, end)
 	length := (end - begin) + 1
 	bytes := make([]byte, length)
@@ -127,7 +131,7 @@ func (client *ApiStreamingClient) getObjectChunk(bucket string, key string, begi
 		Range:  &rng,
 	}
 
-	err = utils.RetryNWithBackoff(backoff, RETRIES, func() error {
+	err = utils.RetryNWithBackoff(client.backoff, RETRIES, func() error {
 		getObjectOutput, s3Err := client.s3Client.GetObject(input)
 
 		if s3Err != nil {
@@ -143,7 +147,7 @@ func (client *ApiStreamingClient) getObjectChunk(bucket string, key string, begi
 		}
 
 		if int64(read) != length {
-			return errors.New(fmt.Sprintf("Expected %i bytes, got %i", length, read))
+			return errors.New(fmt.Sprintf("Expected %d bytes, got %d", length, read))
 		}
 
 		buffer = bytes
@@ -156,8 +160,7 @@ func (client *ApiStreamingClient) getObjectChunk(bucket string, key string, begi
 
 // Retreive the content length of an S3 object.
 func (client *ApiStreamingClient) contentLength(bucket string, key string) (contentLength int64, err error) {
-	backoff := utils.NewSimpleBackoff(BACKOFF_INIT, BACKOFF_MAX, 0.0, BACKOFF_MULTIPLIER)
-	err = utils.RetryNWithBackoff(backoff, RETRIES, func() error {
+	err = utils.RetryNWithBackoff(client.backoff, RETRIES, func() error {
 		headObjectOutput, s3Err := client.s3Client.HeadObject(&s3.HeadObjectInput{
 			Bucket: &bucket,
 			Key:    &key,

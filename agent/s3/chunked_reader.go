@@ -16,6 +16,7 @@ package s3
 import (
 	"errors"
 	"io"
+	"sync/atomic"
 	"time"
 )
 
@@ -73,7 +74,8 @@ func (self *ChunkedReader) Read(buffer []byte) (int, error) {
 
 	var err error
 
-	index := self.bytesRead / self.chunkSize
+	loadedBytesRead := atomic.LoadInt64(&self.bytesRead)
+	index := loadedBytesRead / self.chunkSize
 	key := int(index)
 	offset := index * self.chunkSize
 
@@ -86,7 +88,7 @@ func (self *ChunkedReader) Read(buffer []byte) (int, error) {
 		self.bytesCache[response.index] = response.buffer
 	}
 
-	end := int64(len(buffer)) + self.bytesRead - 1
+	end := int64(len(buffer)) + loadedBytesRead - 1
 
 	if end >= self.contentLength {
 		end = self.contentLength - 1
@@ -94,16 +96,16 @@ func (self *ChunkedReader) Read(buffer []byte) (int, error) {
 		end = ((index + 1) * self.chunkSize) - 1
 	}
 
-	copy(buffer, self.bytesCache[key][self.bytesRead-offset:end-offset+1])
+	copy(buffer, self.bytesCache[key][loadedBytesRead-offset:end-offset+1])
 
-	bytesRead := (end - self.bytesRead) + 1
-	self.bytesRead += bytesRead
+	bytesRead := (end - loadedBytesRead) + 1
+	loadedBytesRead = atomic.AddInt64(&self.bytesRead, bytesRead)
 
-	if (self.bytesRead / self.chunkSize) > index {
+	if (loadedBytesRead / self.chunkSize) > index {
 		delete(self.bytesCache, key)
 	}
 
-	if self.bytesRead >= self.contentLength {
+	if loadedBytesRead >= self.contentLength {
 		self.Close()
 		err = io.EOF
 	}
@@ -145,7 +147,7 @@ func (self *ChunkedReader) work(id int) {
 	for {
 		index, open := <-self.workerIn
 		if index != nil {
-			for (int(self.bytesRead/self.chunkSize) + 1 + self.lookAhead) < *index {
+			for (int(atomic.LoadInt64(&self.bytesRead)/self.chunkSize) + 1 + self.lookAhead) < *index {
 				time.Sleep(time.Millisecond * 100)
 			}
 
