@@ -46,6 +46,7 @@ const (
 
 // Timelimits for docker operations enforced above docker
 const (
+	hostPortOverrideLabel = "com.swipely.amazon-ecs-agent.host-port-override"
 	// ListContainersTimeout is the timeout for the ListContainers API.
 	ListContainersTimeout = 10 * time.Minute
 	// LoadImageTimeout is the timeout for the LoadImage API. It's set
@@ -53,8 +54,9 @@ const (
 	// image from either a file or STDIN
 	// calls involved.
 	// TODO: Benchmark and re-evaluate this value
-	LoadImageTimeout        = 10 * time.Minute
-	pullImageTimeout        = 2 * time.Hour
+	LoadImageTimeout = 10 * time.Minute
+	pullImageTimeout = 2 * time.Hour
+
 	createContainerTimeout  = 4 * time.Minute
 	startContainerTimeout   = 3 * time.Minute
 	stopContainerTimeout    = 30 * time.Second
@@ -471,6 +473,23 @@ func (dg *dockerGoClient) createContainer(ctx context.Context, config *docker.Co
 		return DockerContainerMetadata{Error: CannotGetDockerClientError{version: dg.version, err: err}}
 	}
 
+	if config != nil {
+		override, hasKey := config.Labels[hostPortOverrideLabel]
+		if hasKey {
+			portBindings := make(map[docker.Port][]docker.PortBinding, len(hostConfig.PortBindings))
+			for port, bindings := range hostConfig.PortBindings {
+				portBindings[port] = make([]docker.PortBinding, len(bindings))
+				for idx, binding := range bindings {
+					portBindings[port][idx] = docker.PortBinding{
+						HostIP:   binding.HostIP,
+						HostPort: override,
+					}
+				}
+			}
+			hostConfig.PortBindings = portBindings
+		}
+	}
+
 	containerOptions := docker.CreateContainerOptions{
 		Config:     config,
 		HostConfig: hostConfig,
@@ -819,6 +838,8 @@ func (dg *dockerGoClient) ContainerEvents(ctx context.Context) (<-chan DockerCon
 			case "tag":
 				fallthrough
 			case "untag":
+				fallthrough
+			case "load":
 				fallthrough
 			case "import":
 				fallthrough

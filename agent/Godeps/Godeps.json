@@ -145,6 +145,11 @@
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
 		{
+			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/restxml",
+			"Comment": "v1.8.19",
+			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
+		},
+		{
 			"ImportPath": "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
 			"Comment": "v1.8.19",
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
@@ -171,6 +176,11 @@
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/service/iam",
+			"Comment": "v1.8.19",
+			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
+		},
+		{
+			"ImportPath": "github.com/aws/aws-sdk-go/service/s3",
 			"Comment": "v1.8.19",
 			"Rev": "0dbc446aca87aebb6e0a24509b59bafc0e3ec0ae"
 		},
@@ -411,11 +421,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
-			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
+			"Rev": "6c23252515492caf9b228a9d5cabcdbde29f7f82"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html/atom",
-			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
+			"Rev": "6c23252515492caf9b228a9d5cabcdbde29f7f82"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
